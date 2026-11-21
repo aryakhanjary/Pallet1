@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Farzaneh Tejarat | Automatic Stair Profiling & Polishing Machine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #09090b;
+      --bg-gradient-start: #0d0d10;
+      --bg-gradient-end: #070709;
+      --tile-1: #131317;
+      --tile-2: #0f0f13;
+      --tile-3: #0c0c0f;
+      --tile-border: #1d1d24;
+      --overlay-top: rgba(9, 9, 11, 0.45);
+      --overlay-bottom: rgba(9, 9, 11, 0.94);
+      --text-main: #ffffff;
+      --text-muted: #84848e;
+      --accent: #f39c12;
+      --accent-glow: rgba(243, 156, 18, 0.25);
+      --accent-soft: rgba(243, 156, 18, 0.08);
+      --accent-border: rgba(243, 156, 18, 0.42);
+      --surface-glass: rgba(255, 255, 255, 0.025);
+      --surface-glass-hover: rgba(255, 255, 255, 0.065);
+      --border-glass: rgba(255, 255, 255, 0.07);
+      --line-color: rgba(255, 255, 255, 0.28);
+      --card-bg: rgba(16, 16, 20, 0.72);
+      --card-shadow: 0 30px 60px rgba(0, 0, 0, 0.85);
+      --title-shadow: 0 15px 40px rgba(0, 0, 0, 0.98);
+      --grid-line: rgba(255, 255, 255, 0.022);
+      --transition-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+      --theme-transition: 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    html[data-theme="light"] {
+      --bg-color: #f3f2ee;
+      --bg-gradient-start: #f7f6f2;
+      --bg-gradient-end: #e8e6df;
+      --tile-1: #ebe9e2;
+      --tile-2: #e3e0d7;
+      --tile-3: #dcd8ce;
+      --tile-border: #d2cec2;
+      --overlay-top: rgba(243, 242, 238, 0.35);
+      --overlay-bottom: rgba(235, 233, 226, 0.92);
+      --text-main: #111114;
+      --text-muted: #5a5a60;
+      --accent: #d98200;
+      --accent-glow: rgba(217, 130, 0, 0.2);
+      --accent-soft: rgba(217, 130, 0, 0.09);
+      --accent-border: rgba(217, 130, 0, 0.45);
+      --surface-glass: rgba(17, 17, 20, 0.03);
+      --surface-glass-hover: rgba(17, 17, 20, 0.07);
+      --border-glass: rgba(17, 17, 20, 0.09);
+      --line-color: rgba(17, 17, 20, 0.22);
+      --card-bg: rgba(255, 255, 255, 0.78);
+      --card-shadow: 0 25px 50px rgba(20, 20, 20, 0.08);
+      --title-shadow: 0 12px 30px rgba(255, 255, 255, 0.9);
+      --grid-line: rgba(17, 17, 20, 0.03);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background-color: var(--bg-color);
+      transition: background-color var(--theme-transition);
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: 'Montserrat', sans-serif;
+      position: relative;
+      overflow-x: hidden;
+      line-height: 1.6;
+      transition: background-color var(--theme-transition), color var(--theme-transition);
+    }
+
+    /* پشتیبانی از View Transition برای باز شدن موجی دایره‌ای هنگام تغییر تم */
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation: none;
+      mix-blend-mode: normal;
+    }
+
+    /* --- پرده موج نوری برای مرورگرهای بدون View Transition --- */
+    .theme-wave-curtain {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      pointer-events: none;
+      opacity: 0;
+      background: radial-gradient(circle at var(--wave-x, 90%) var(--wave-y, 5%), var(--accent-glow) 0%, transparent 60%);
+      transform: scale(0.2);
+      transform-origin: var(--wave-x, 90%) var(--wave-y, 5%);
+      transition: opacity 0.4s ease, transform 0.8s var(--transition-smooth);
+    }
+
+    .theme-wave-curtain.active {
+      opacity: 1;
+      transform: scale(2.6);
+    }
+
+    /* --- بک‌گراند هندسی اریب + شبکه مهندسی --- */
+    .geometric-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+      background: linear-gradient(160deg, var(--bg-gradient-start), var(--bg-gradient-end));
+      transition: background var(--theme-transition);
+    }
+
+    .tech-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+      background-size: 64px 64px;
+    }
+
+    .geo-tile {
+      position: absolute;
+      border: 1px solid var(--tile-border);
+      transform: rotate(-15deg);
+      transition: background-color var(--theme-transition), border-color var(--theme-transition), box-shadow var(--theme-transition);
+    }
+
+    .tile-1 {
+      width: 60vw;
+      height: 45vh;
+      top: -10vh;
+      left: -10vw;
+      background: var(--tile-1);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    .tile-2 {
+      width: 70vw;
+      height: 50vh;
+      top: 5vh;
+      right: -20vw;
+      background: var(--tile-2);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    .tile-3 {
+      width: 90vw;
+      height: 70vh;
+      bottom: -20vh;
+      left: -15vw;
+      background: var(--tile-3);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    html[data-theme="light"] .geo-tile {
+      box-shadow: 0 18px 36px rgba(15, 15, 15, 0.04);
+    }
+
+    .bg-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, var(--overlay-top) 0%, var(--overlay-bottom) 100%);
+      transition: background var(--theme-transition);
+    }
+
+    .noise-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      opacity: 0.035;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 clamp(16px, 5vw, 60px);
+      position: relative;
+      z-index: 10;
+    }
+
+    /* --- هدر ثابت و نوار ناوبری تکنیکال به سبک Shelter --- */
+    .top-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      padding: clamp(16px, 3vw, 26px) clamp(16px, 5vw, 60px);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+    }
+
+    .scroll-progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 2px;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), #ffbe55);
+      z-index: 60;
+      box-shadow: 0 0 12px var(--accent);
+      transition: width 0.1s linear;
+    }
+
+    .brand-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 600;
+      pointer-events: auto;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-glass);
+      backdrop-filter: blur(12px);
+      transition: color var(--theme-transition), background-color var(--theme-transition), border-color var(--theme-transition);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+      animation: pulseStatus 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseStatus {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(0.8); }
+    }
+
+    /* ناوبری کپسولی بخش‌ها (01 INTRO | 02 MARBLE | 03 TRAVERTINE | 04 GRANITE | 05 CONTACT) */
+    .tech-nav {
+      pointer-events: auto;
+      display: none;
+      align-items: center;
+      gap: 4px;
+      padding: 5px;
+      border-radius: 999px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-glass);
+      backdrop-filter: blur(14px);
+      transition: background-color var(--theme-transition), border-color var(--theme-transition);
+    }
+
+    @media (min-width: 860px) {
+      .tech-nav {
+        display: flex;
+      }
+    }
+
+    .tech-nav-link {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 7px 13px;
+      border-radius: 999px;
+      transition: all 0.3s ease;
+    }
+
+    .tech-nav-link span {
+      color: var(--accent);
+      margin-right: 4px;
+      opacity: 0.8;
+    }
+
+    .tech-nav-link:hover {
+      color: var(--text-main);
+      background: var(--surface-glass-hover);
+    }
+
+    .tech-nav-link.active {
+      color: #0b0b0b;
+      background: var(--accent);
+      box-shadow: 0 4px 16px var(--accent-glow);
+    }
+
+    .tech-nav-link.active span {
+      color: #0b0b0b;
+      opacity: 1;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: auto;
+    }
+
+    /* --- دکمه انیمیشنی دارک مود و وایت مود --- */
+    .theme-toggle-btn {
+      position: relative;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--card-bg);
+      border: 1px solid var(--border-glass);
+      backdrop-filter: blur(12px);
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      transition: transform 0.35s var(--transition-smooth), border-color 0.35s ease, background-color var(--theme-transition), box-shadow 0.35s ease;
+    }
+
+    .theme-toggle-btn:hover {
+      transform: scale(1.08);
+      border-color: var(--accent);
+      box-shadow: 0 0 22px var(--accent-soft);
+    }
+
+    .theme-toggle-btn:active {
+      transform: scale(0.92);
+    }
+
+    .theme-icon {
+      position: absolute;
+      width: 19px;
+      height: 19px;
+      fill: currentColor;
+      transition: transform 0.6s var(--transition-smooth), opacity 0.4s ease, color 0.3s ease;
+    }
+
+    html[data-theme="dark"] .sun-icon {
+      opacity: 1;
+      transform: rotate(0deg) scale(1);
+      color: #ffd166;
+    }
+
+    html[data-theme="dark"] .moon-icon {
+      opacity: 0;
+      transform: rotate(-90deg) scale(0.4);
+    }
+
+    html[data-theme="light"] .sun-icon {
+      opacity: 0;
+      transform: rotate(90deg) scale(0.4);
+    }
+
+    html[data-theme="light"] .moon-icon {
+      opacity: 1;
+      transform: rotate(0deg) scale(1);
+      color: #1f242d;
+    }
+
+    .theme-toggle-btn:hover .sun-icon {
+      transform: rotate(45deg) scale(1.1);
+    }
+
+    html[data-theme="light"] .theme-toggle-btn:hover .moon-icon {
+      transform: rotate(-18deg) scale(1.1);
+    }
+
+    .logo-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--card-bg);
+      border: 1px solid var(--border-glass);
+      backdrop-filter: blur(10px);
+      transition: transform 0.3s ease, border-color 0.3s ease, background-color var(--theme-transition);
+    }
+
+    .logo-wrapper:hover { transform: scale(1.08); border-color: var(--accent); }
+
+    .logo-img {
+      width: 24px;
+      height: auto;
+      filter: brightness(0) invert(1);
+      transition: filter var(--theme-transition);
+    }
+
+    html[data-theme="light"] .logo-img {
+      filter: brightness(0) invert(0.08);
+    }
+
+    html[data-theme="light"] .logo-fallback-svg {
+      stroke: #121212;
+    }
+
+    /* --- بخش اول: هیرو با کدگذاری صنعتی Shelter --- */
+    .hero-section {
+      min-height: 100vh;
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: flex-start;
+      text-align: left;
+      padding-bottom: clamp(64px, 9vh, 96px);
+      padding-top: 110px;
+    }
+
+    .hero-content {
+      max-width: 840px;
+      width: 100%;
+    }
+
+    .hero-code-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hero-code-tag::after {
+      content: "";
+      width: 36px;
+      height: 1px;
+      background: var(--accent);
+      opacity: 0.6;
+    }
+
+    .main-title {
+      font-size: clamp(2.1rem, 5.2vw, 3.85rem);
+      font-weight: 900;
+      line-height: 1.08;
+      text-transform: uppercase;
+      letter-spacing: -1.5px;
+      color: var(--text-main);
+      white-space: pre-wrap;
+      border-right: 3px solid var(--accent);
+      width: fit-content;
+      animation: blinkCursor 0.75s step-end infinite;
+      transition: color var(--theme-transition);
+    }
+
+    @keyframes blinkCursor {
+      from, to { border-color: transparent; }
+      50% { border-color: var(--accent); }
+    }
+
+    .brand-name {
+      font-size: clamp(1rem, 2.5vw, 1.35rem);
+      font-weight: 700;
+      color: var(--text-main);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 1s var(--transition-smooth) 0.4s, transform 1s var(--transition-smooth) 0.4s, color var(--theme-transition);
+    }
+
+    .hero-section.loaded .brand-name {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .brand-name span { color: var(--accent); margin-left: 4px; }
+
+    .luxury-desc {
+      font-size: clamp(0.85rem, 1.5vw, 1rem);
+      font-weight: 400;
+      line-height: 1.8;
+      color: var(--text-muted);
+      margin-top: 18px;
+      max-width: 720px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 1s var(--transition-smooth) 0.65s, transform 1s var(--transition-smooth) 0.65s, color var(--theme-transition);
+    }
+
+    .hero-section.loaded .luxury-desc {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .luxury-desc strong {
+      color: var(--text-main);
+      font-weight: 600;
+      transition: color var(--theme-transition);
+    }
+
+    /* کارت‌های مشخصات فنی زنده به سبک Shelter */
+    .hero-telemetry-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      width: 100%;
+      max-width: 680px;
+      margin-top: 28px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 1s var(--transition-smooth) 0.9s, transform 1s var(--transition-smooth) 0.9s;
+    }
+
+    .hero-section.loaded .hero-telemetry-grid {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .telemetry-box {
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-glass);
+      backdrop-filter: blur(10px);
+      transition: border-color 0.3s ease, transform 0.3s ease, background-color var(--theme-transition);
+    }
+
+    .telemetry-box:hover {
+      border-color: var(--accent-border);
+      transform: translateY(-3px);
+    }
+
+    .telemetry-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .telemetry-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(0.85rem, 1.8vw, 1.05rem);
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .telemetry-value span {
+      color: var(--accent);
+    }
+
+    .scroll-down {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      transition: color 0.3s ease;
+      animation: bounce 2.2s infinite;
+    }
+
+    .scroll-down:hover { color: var(--accent); }
+    .scroll-down svg { width: 18px; height: 18px; fill: currentColor; display: block; }
+
+    @keyframes bounce {
+      0%, 100% { transform: translate(-50%, 0); }
+      50% { transform: translate(-50%, 6px); }
+    }
+
+    /* --- صفحات کاتالوگ سنگ‌ها --- */
+    .catalog-section {
+      min-height: 100vh;
+      padding: 95px 0 110px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .catalog-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 36px;
+      opacity: 0;
+      transform: translateY(25px);
+      transition: all 1s var(--transition-smooth);
+    }
+
+    .page-number {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: clamp(2.3rem, 5vw, 3.6rem);
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1;
+      transition: color var(--theme-transition);
+    }
+
+    .page-category {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.74rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .stone-showcase {
+      position: relative;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      perspective: 1200px;
+      margin: 12px 0;
+    }
+
+    .stone-container {
+      position: relative;
+      width: clamp(210px, 40vw, 285px);
+      aspect-ratio: 3 / 5;
+      opacity: 0;
+      transform: translateY(50px) scale(0.92);
+      transition: opacity 1.2s var(--transition-smooth), transform 0.3s ease-out;
+      transform-style: preserve-3d;
+      cursor: pointer;
+      background: transparent;
+    }
+
+    .catalog-section.in-view .stone-container {
+      animation: floatStone 6s ease-in-out infinite alternate;
+    }
+
+    @keyframes floatStone {
+      0% { transform: translateY(0px) rotateX(0deg) rotateY(0deg); }
+      100% { transform: translateY(-12px) rotateX(2deg) rotateY(-2deg); }
+    }
+
+    .stone-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      border-radius: 6px;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+      background: transparent;
+    }
+
+    .stone-text-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) translateZ(60px);
+      width: 100vw;
+      text-align: center;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .main-title-gallery {
+      font-size: clamp(2.5rem, 9vw, 6rem);
+      font-weight: 900;
+      letter-spacing: clamp(8px, 3vw, 20px);
+      text-transform: uppercase;
+      color: var(--text-main);
+      text-shadow: var(--title-shadow);
+      opacity: 0;
+      transform: scale(0.85);
+      transition: opacity 1.2s var(--transition-smooth), transform 1.2s var(--transition-smooth), color var(--theme-transition), text-shadow var(--theme-transition);
+      white-space: nowrap;
+    }
+
+    .travertine-title {
+      font-size: clamp(2rem, 7.5vw, 4.8rem);
+      letter-spacing: clamp(5px, 2vw, 14px);
+    }
+
+    .horizontal-line {
+      width: 100%;
+      max-width: 520px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--line-color), transparent);
+      margin: 44px auto 28px auto;
+      opacity: 0;
+      transform: scaleX(0);
+      transition: opacity 1.2s var(--transition-smooth), transform 1.2s var(--transition-smooth), background var(--theme-transition);
+    }
+
+    /* --- ابزارهای برش تعاملی زیر سنگ (با پنل مشخصات مهندسی به سبک Shelter) --- */
+    .tools-wrapper {
+      width: 100%;
+      max-width: 660px;
+      margin: 0 auto;
+    }
+
+    .tools-hint {
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    .tools-section {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: clamp(8px, 2vw, 14px);
+      width: 100%;
+      opacity: 0;
+      transform: translateY(35px);
+      transition: opacity 1s ease, transform 1s var(--transition-smooth);
+    }
+
+    .tools-section.tools-visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .tool-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: clamp(12px, 2.5vw, 16px) clamp(6px, 1vw, 10px);
+      border-radius: 12px;
+      background: var(--surface-glass);
+      border: 1px solid var(--border-glass);
+      backdrop-filter: blur(8px);
+      min-width: 0;
+      transition: transform 0.35s var(--transition-smooth), background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+    }
+
+    .tool-item:hover,
+    .tool-item.selected {
+      background: var(--accent-soft);
+      border-color: var(--accent-border);
+      transform: translateY(-5px);
+      box-shadow: 0 12px 28px var(--accent-glow);
+    }
+
+    .tool-svg-wrapper {
+      width: clamp(38px, 10vw, 54px);
+      height: clamp(30px, 8vw, 42px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tool-svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .stone-body {
+      fill: rgba(255, 255, 255, 0);
+      stroke: var(--text-main);
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 250;
+      stroke-dashoffset: 250;
+      transition: stroke-dashoffset 2.4s cubic-bezier(0.25, 1, 0.5, 1), fill 1.2s ease 1.4s, stroke 0.3s ease;
+    }
+
+    .tools-section.tools-visible .tool-item:nth-child(1) .stone-body { stroke-dashoffset: 0; fill: var(--surface-glass-hover); transition-delay: 0.05s, 1.4s, 0s; }
+    .tools-section.tools-visible .tool-item:nth-child(2) .stone-body { stroke-dashoffset: 0; fill: var(--surface-glass-hover); transition-delay: 0.15s, 1.5s, 0s; }
+    .tools-section.tools-visible .tool-item:nth-child(3) .stone-body { stroke-dashoffset: 0; fill: var(--surface-glass-hover); transition-delay: 0.25s, 1.6s, 0s; }
+    .tools-section.tools-visible .tool-item:nth-child(4) .stone-body { stroke-dashoffset: 0; fill: var(--surface-glass-hover); transition-delay: 0.35s, 1.7s, 0s; }
+    .tools-section.tools-visible .tool-item:nth-child(5) .stone-body { stroke-dashoffset: 0; fill: var(--surface-glass-hover); transition-delay: 0.45s, 1.8s, 0s; }
+    .tools-section.tools-visible .tool-item:nth-child(6) .stone-body { stroke-dashoffset: 0; fill: var(--surface-glass-hover); transition-delay: 0.55s, 1.9s, 0s; }
+
+    .tool-item:hover .stone-body,
+    .tool-item.selected .stone-body {
+      fill: var(--accent-soft) !important;
+      stroke: var(--accent) !important;
+      transition-delay: 0s !important;
+    }
+
+    .tool-label {
+      font-size: clamp(0.52rem, 1.6vw, 0.7rem);
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      font-weight: 600;
+      text-align: center;
+      line-height: 1.25;
+      word-break: break-word;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.9s ease, transform 0.9s ease, color 0.3s ease;
+    }
+
+    .tools-section.tools-visible .tool-item:nth-child(1) .tool-label { opacity: 1; transform: translateY(0); transition-delay: 0.8s; }
+    .tools-section.tools-visible .tool-item:nth-child(2) .tool-label { opacity: 1; transform: translateY(0); transition-delay: 0.9s; }
+    .tools-section.tools-visible .tool-item:nth-child(3) .tool-label { opacity: 1; transform: translateY(0); transition-delay: 1.0s; }
+    .tools-section.tools-visible .tool-item:nth-child(4) .tool-label { opacity: 1; transform: translateY(0); transition-delay: 1.1s; }
+    .tools-section.tools-visible .tool-item:nth-child(5) .tool-label { opacity: 1; transform: translateY(0); transition-delay: 1.2s; }
+    .tools-section.tools-visible .tool-item:nth-child(6) .tool-label { opacity: 1; transform: translateY(0); transition-delay: 1.3s; }
+
+    .tool-item:hover .tool-label,
+    .tool-item.selected .tool-label {
+      color: var(--text-main);
+    }
+
+    /* باکس مشخصات زنده پروفیل انتخاب‌شده (Live Profile Spec Panel) */
+    .profile-spec-panel {
+      margin-top: 16px;
+      padding: 16px 20px;
+      border-radius: 12px;
+      background: var(--card-bg);
+      border: 1px solid var(--accent-border);
+      backdrop-filter: blur(12px);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      transition: all 0.35s ease;
+    }
+
+    .spec-main {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      text-align: left;
+    }
+
+    .spec-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .spec-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .spec-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .spec-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-border);
+      color: var(--accent);
+      white-space: nowrap;
+    }
+
+    .catalog-section.in-view .catalog-header { opacity: 1; transform: translateY(0); }
+    .catalog-section.in-view .stone-container { opacity: 1; transform: translateY(0) scale(1); }
+
+    .catalog-section.in-view .main-title-gallery {
+      opacity: 1;
+      transform: scale(1);
+      animation: textShimmer 4s infinite ease-in-out;
+    }
+
+    @keyframes textShimmer {
+      0%, 100% { text-shadow: var(--title-shadow), 0 0 10px rgba(255,255,255,0); }
+      50% { text-shadow: var(--title-shadow), 0 0 30px rgba(243, 156, 18, 0.35); }
+    }
+
+    .catalog-section.in-view .horizontal-line { opacity: 1; transform: scaleX(1); transition-delay: 0.2s; }
+
+    /* --- صفحه چهارم: تماس با ما --- */
+    .contact-section {
+      min-height: 100vh;
+      padding: 90px 0 100px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .contact-card {
+      width: 100%;
+      max-width: 760px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-glass);
+      border-radius: 16px;
+      padding: clamp(30px, 6vw, 55px);
+      backdrop-filter: blur(14px);
+      box-shadow: var(--card-shadow);
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 1.2s var(--transition-smooth), transform 1.2s var(--transition-smooth), background-color var(--theme-transition), border-color var(--theme-transition), box-shadow var(--theme-transition);
+      text-align: center;
+    }
+
+    .contact-section.in-view .contact-card {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .contact-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 3px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .contact-header-title {
+      font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+      color: var(--text-main);
+      transition: color var(--theme-transition);
+    }
+
+    .contact-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 36px;
+      transition: color var(--theme-transition);
+    }
+
+    .social-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: clamp(12px, 2.5vw, 20px);
+      margin-bottom: 35px;
+    }
+
+    .social-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: var(--surface-glass);
+      border: 1px solid var(--border-glass);
+      transition: transform 0.3s ease, background-color var(--theme-transition), border-color var(--theme-transition);
+    }
+
+    .social-link:hover {
+      background: var(--surface-glass-hover);
+      border-color: var(--accent-border);
+      transform: translateY(-2px);
+    }
+
+    .social-icon {
+      width: 19px;
+      height: 19px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-main);
+      flex-shrink: 0;
+      transition: color var(--theme-transition);
+    }
+
+    .social-icon svg {
+      width: 100%;
+      height: 100%;
+      fill: currentColor;
+    }
+
+    .social-text {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      transition: color var(--theme-transition);
+    }
+
+    .social-link:hover .social-text {
+      color: var(--text-main);
+    }
+
+    .address-wrapper {
+      margin-top: 15px;
+      padding-top: 25px;
+      border-top: 1px solid var(--border-glass);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      transition: color var(--theme-transition), border-color var(--theme-transition);
+    }
+
+    .address-wrapper svg {
+      width: 16px;
+      height: 16px;
+      fill: var(--accent);
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- نوار پیشرفت اسکرول در بالاترین نقطه -->
+  <div class="scroll-progress-bar" id="scrollProgressBar"></div>
+
+  <!-- موج نوری پشتیبان برای انیمیشن تغییر تم -->
+  <div class="theme-wave-curtain" id="themeWaveCurtain"></div>
+
+  <!-- بک‌گراند هندسی اریب + شبکه مهندسی -->
+  <div class="geometric-bg">
+    <div class="tech-grid"></div>
+    <div class="geo-tile tile-1"></div>
+    <div class="geo-tile tile-2"></div>
+    <div class="geo-tile tile-3"></div>
+    <div class="bg-overlay"></div>
+  </div>
+
+  <div class="noise-overlay"></div>
+
+  <!-- هدر ثابت با نوار ناوبری مهندسی و دکمه سوئیچ تم -->
+  <header class="top-header">
+    <span class="brand-badge">
+      <span class="status-dot"></span>
+      EST. PREMIUM STONE
+    </span>
+
+    <nav class="tech-nav" aria-label="Section Navigation">
+      <a href="#heroSection" class="tech-nav-link active" data-target="heroSection"><span>00</span>INTRO</a>
+      <a href="#catalogSection1" class="tech-nav-link" data-target="catalogSection1"><span>01</span>MARBLE</a>
+      <a href="#catalogSection2" class="tech-nav-link" data-target="catalogSection2"><span>02</span>TRAVERTINE</a>
+      <a href="#catalogSection3" class="tech-nav-link" data-target="catalogSection3"><span>03</span>GRANITE</a>
+      <a href="#contactSection" class="tech-nav-link" data-target="contactSection"><span>04</span>CONTACT</a>
+    </nav>
+
+    <div class="header-actions">
+      <!-- دکمه سوئیچ دارک مود / وایت مود -->
+      <button
+        type="button"
+        class="theme-toggle-btn"
+        id="themeToggleBtn"
+        aria-label="Toggle Light and Dark Mode"
+        title="Switch Light / Dark Mode"
+      >
+        <svg class="theme-icon sun-icon" viewBox="0 0 24 24">
+          <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0-.39.39-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0 .39-.39.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41-.39-.39-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+        </svg>
+
+        <svg class="theme-icon moon-icon" viewBox="0 0 24 24">
+          <path d="M12.3 2.2c.4-.1.7.3.6.7-.9 3.6.7 7.5 4 9.3 2.5 1.4 5.5 1.2 7.8-.4.3-.2.7.1.6.5-1.1 5.1-6.1 8.6-11.4 7.8C6.6 19.9 2.3 14.3 3.1 8.4c.5-3.4 2.8-6.2 6-7.2.4-.1.8.2.8.6.1.1 1.6.3 2.4.4z"/>
+        </svg>
+      </button>
+
+      <div class="logo-wrapper" title="Farzaneh Tejarat">
+        <img src="logo.png" alt="Farzaneh Tejarat" class="logo-img" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+        <svg class="logo-fallback-svg" style="display:none; width:24px; height:24px;" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+          <polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"></polygon>
+          <line x1="12" y1="22" x2="12" y2="15.5"></line>
+          <polyline points="22 8.5 12 15.5 2 8.5"></polyline>
+        </svg>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- بخش اول: هیرو با افکت تایپ‌واکتر و مشخصات زنده -->
+    <section class="hero-section" id="heroSection">
+      <div class="hero-content">
+        <div class="hero-code-tag">00 // INDUSTRIAL EDGE SYSTEMS</div>
+
+        <h1 class="main-title" id="typewriterTitle"></h1>
+
+        <div class="brand-name">
+          FARZANEH TEJARAT<span>.CO</span>
+        </div>
+
+        <p class="luxury-desc">
+          Equipped with a dedicated step-processing machine, we flawlessly execute edge profiling on all stone types, including <strong>Granite, Travertine, Marble, and more</strong>. With a daily capacity of up to <strong>500 square meters</strong>, we guarantee Grade-A quality, flawless precision, and unparalleled luxury.
+        </p>
+
+        <div class="hero-telemetry-grid">
+          <div class="telemetry-box">
+            <div class="telemetry-label">DAILY OUTPUT</div>
+            <div class="telemetry-value">500 <span>SQM/D</span></div>
+          </div>
+          <div class="telemetry-box">
+            <div class="telemetry-label">FINISH STANDARD</div>
+            <div class="telemetry-value">GRADE-<span>A</span></div>
+          </div>
+          <div class="telemetry-box">
+            <div class="telemetry-label">EDGE PROFILES</div>
+            <div class="telemetry-value">06 <span>MODES</span></div>
+          </div>
+        </div>
+      </div>
+
+      <a href="#catalogSection1" class="scroll-down" aria-label="Scroll to Catalog">
+        <span>SCROLL</span>
+        <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+      </a>
+    </section>
+
+    <!-- صفحه اول: MARBLE -->
+    <section class="catalog-section" id="catalogSection1">
+      <div class="catalog-header">
+        <div class="page-number">01</div>
+        <div class="page-category">01 // NATURAL MARBLE</div>
+      </div>
+
+      <div class="stone-showcase">
+        <div class="stone-container" id="stoneCard1">
+          <img
+            src="pietragray.jpg"
+            alt="Marble Stone"
+            class="stone-image"
+            onerror="this.src='https://images.unsplash.com/photo-1618221118493-9cfa1a1c00da?auto=format&fit=crop&w=600&q=80'"
+          >
+          <div class="stone-text-overlay">
+            <h2 class="main-title-gallery">MARBLE</h2>
+          </div>
+        </div>
+      </div>
+
+      <div class="horizontal-line"></div>
+
+      <!-- ۶ ابزار برش تعاملی زیر سنگ -->
+      <div class="tools-wrapper">
+        <div class="tools-hint">SELECT AN EDGE PROFILE TO INSPECT SPECS</div>
+        <div class="tools-section" id="toolsSection1" data-spec-target="specPanel1">
+          <div class="tool-item selected" data-name="Half Bullnose" data-code="PRF-01 // R10 TOP ARC" data-desc="Smooth rounded top edge with flat bottom — ideal for luxury marble stair treads." data-finish="MIRROR POLISH">
+            <div class="tool-svg-wrapper">
+              <svg class="tool-svg" viewBox="0 0 60 45">
+                <path class="stone-body" d="M 10 38 L 50 38 L 50 18 C 50 12, 44 10, 38 10 L 10 10 Z" />
+              </svg>
+            </div>
+            <span class="tool-label">Half Bullnose</span>
+          </div>
+          <div class="tool-item" data-name="Bullnose" data-code="PRF-02 // FULL 180° RADIUS" data-desc="Complete semicircular edge profile offering maximum impact resistance and softness." data-finish="HIGH GLOSS">
+            <div class="tool-svg-wrapper">
+              <svg class="tool-svg" viewBox="0 0 60 45">
+                <path class="stone-body" d="M 10 38 L 40 38 C 48 38, 52 32, 52 24 C 52 16, 48 10, 40 10 L 10 10 Z" />
+              </svg>
+            </div>
+            <span class="tool-label">Bullnose</span>
+          </div>
+          <div class="tool-item" data-name="Beveled" data-code="PRF-03 // 45° CHAMFER CUT" data-desc="Crisp architectural 45-degree angled cut highlighting natural marble veining." data-finish="PRECISION HONED">
+            <div class="tool-svg-wrapper">
+              <svg class="tool-svg" viewBox="0 0 60 45">
+                <path class="stone-body" d="M 10 38 L 50 38 L 50 18 L 40 10 L 10 10 Z" />
+              </svg>
+            </div>
+            <span class="tool-label">Beveled</span>
+          </div>
+          <div class="tool-item" data-name="Step Edge" data-code="PRF-04 // REBATE STEP" data-desc="Architectural stepped notch engineered for modern floating staircases and risers." data-finish="CNC CALIBRATED">
+            <div class="tool-svg-wrapper">
+              <svg class="tool-svg" viewBox="0 0 60 45">
+                <path class="stone-body" d="M 10 38 L 50 38 L 50 18 L 36 18 L 36 10 L 10 10 Z" />
+              </svg>
+            </div>
+            <span class="tool-label">Step Edge</span>
+          </div>
+          <div class="tool-item" data-name="Eased Edge" data-code="PRF-05 // MICRO CHAMFER" data-desc="Minimalist squared edge with slightly softened top corner for contemporary interiors." data-finish="ULTRA SMOOTH">
+            <div class="tool-svg-wrapper">
+              <svg class="tool-svg" viewBox="0 0 60 45">
+                <path class="stone-body" d="M 10 38 L 50 38 L 50 14 L 46 10 L 10 10 Z" />
+              </svg>
+            </div>
+            <span class="tool-label">Eased Edge</span>
+          </div>
+          <div class="tool-item" data-name="Pencil Round" data-code="PRF-06 // SLIM R5 PROFILE" data-desc="Delicate pencil-radius edge designed for thin slabs, skirting boards, and trims." data-finish="DIAMOND POLISH">
+            <div class="tool-svg-wrapper">
+              <svg class="tool-svg" viewBox="0 0 60 45">
+                <path class="stone-body" d="M 10 38 L 44 38 C 49 38, 51 35, 51 31 C 51 27, 49 24, 44 24 L 10 24 Z" />
+              </svg>
+            </div>
+            <span class="tool-label">Pencil Round</span>
+          </div>
+        </div>
+
+        <div class="profile-spec-panel" id="specPanel1">
+          <div class="spec-main">
+            <span class="spec-tag">PRF-01 // R10 TOP ARC</span>
+            <div class="spec-title">Half Bullnose — Marble</div>
+            <div class="spec-desc">Smooth rounded top edge with flat bottom — ideal for luxury marble stair treads.</div>
+          </div>
+          <span class="spec-badge">MIRROR POLISH</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- صفحه دوم: TRAVERTINE -->
+    <section class="catalog-section" id="catalogSection2">
+      <div class="catalog-header">
+        <div class="page-number">02</div>
+        <div class="page-category">02 // NATURAL TRAVERTINE</div>
+      </div>
+
+      <div class="stone-showcase">
+        <div class="stone-container" id="stoneCard2">
+          <img
+            src="travertine.jpg"
+            alt="Travertine Stone"
+            class="stone-image"
+            onerror="this.src='https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80'"
+          >
+          <div class="stone-text-overlay">
+            <h2 class="main-title-gallery travertine-title">TRAVERTINE</h2>
+          </div>
+        </div>
+      </div>
+
+      <div class="horizontal-line"></div>
+
+      <div class="tools-wrapper">
+        <div class="tools-hint">SELECT AN EDGE PROFILE TO INSPECT SPECS</div>
+        <div class="tools-section" id="toolsSection2" data-spec-target="specPanel2">
+          <div class="tool-item selected" data-name="Half Bullnose" data-code="PRF-01 // R10 TOP ARC" data-desc="Resin-filled and polished top curve preventing edge chipping on exterior travertine stairs." data-finish="RESIN + POLISH">
+            <div class="tool-svg-wrapper">
+              <svg class="tool-svg" viewBox="0 0 60 45">
+                <path class="stone-body" d="M 10 38 L 50 38 L 50 18 C 50 12, 44 10, 38 10 L 10 10 Z" />
+              </svg>
+            </div>
+            <span class="tool-label">Half Bullnose</span>
+          </div>
+          <div class="tool-item" data-name="Bullnose" data-code="PRF-02 // FULL 180° RADIUS" data-desc="Classic full-round nosing widely used for pool copings and grand entrance steps." data-finish="SMOOTH SATIN">
+            <div class="tool-svg-wrapper">
+              <svg class="tool-svg" viewBox="0 0 60 45">
+                <path class="stone-body" d="M 10 38 L 40 38 C 48 38, 52 32, 52 24 C 52 16, 48 10, 40 10 L 10 10 Z" />
+              </svg>
+            </div>
+            <span class="tool-label">Bullnose</span>
+          </div>
+          <div class="tool-item" data-name="Beveled" data-code="PRF-03 // 45° CHAMFER CUT" data-desc="Clean geometric bevel that frames travertine facades and commercial stairways." data-finish="SHARP 45°">
+            <div class="tool-svg-wrapper">
+              <svg class="tool-svg" viewBox="0 0 60 45">
+                <path class="stone-body" d="M 10 38 L 50 38 L 50 18 L 40 10 L 10 10 Z" />
+              </svg>
+            </div>
+            <span class="tool-label">Beveled</span>
+          </div>
+          <div class="tool-item" data-name="Step Edge" data-code="PRF-04 // REBATE STEP" data-desc="Precision grooved step nose creating shadow lines on architectural stone treads." data-finish="MULTI-HEAD CUT">
+            <div class="tool-svg-wrapper">
+              <svg class="tool-svg" viewBox="0 0 60 45">
+                <path class="stone-body" d="M 10 38 L 50 38 L 50 18 L 36 18 L 36 10 L 10 10 Z" />
+              </svg>
+            </div>
+            <span class="tool-label">Step Edge</span>
+          </div>
+          <div class="tool-item" data-name="Eased Edge" data-code="PRF-05 // MICRO CHAMFER" data-desc="Subtle corner relief preserving the bold monolithic thickness of travertine slabs." data-finish="MATTE / GLOSS">
+            <div class="tool-svg-wrapper">
+              <svg class="tool-svg" viewBox="0 0 60 45">
+                <path class="stone-body" d="M 10 38 L 50 38 L 50 14 L 46 10 L 10 10 Z" />
+              </svg>
+            </div>
+            <span class="tool-label">Eased Edge</span>
+          </div>
+          <div class="tool-item" data-name="Pencil Round" data-code="PRF-06 // SLIM R5 PROFILE" data-desc="Fine rounded finish tailored for wall claddings, window sills, and decorative strips." data-finish="CALIBRATED">
+            <div class="tool-svg-wrapper">
+              <svg class="tool-svg" viewBox="0 0 60 45">
+                <path class="stone-body" d="M 10 38 L 44 38 C 49 38, 51 35, 51 31 C 51 27, 49 24, 44 24 L 10 24 Z" />
+              </svg>
+            </div>
+            <span class="tool-label">Pencil Round</span>
+          </div>
+        </div>
+
+        <div class="profile-spec-panel" id="specPanel2">
+          <div class="spec-main">
+            <span class="spec-tag">PRF-01 // R10 TOP ARC</span>
+            <div class="spec-title">Half Bullnose — Travertine</div>
+            <div class="spec-desc">Resin-filled and polished top curve preventing edge chipping on exterior travertine stairs.</div>
+          </div>
+          <span class="spec-badge">RESIN + POLISH</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- صفحه سوم: GRANITE -->
+    <section class="catalog-section" id="catalogSection3">
+      <div class="catalog-header">
+        <div class="page-number">03</div>
+        <div class="page-category">03 // NATURAL GRANITE</div>
+      </div>
+
+      <div class="stone-showcase">
+        <div class="stone-container" id="stoneCard3">
+          <img
+            src="granite.jpg"
+            alt="Granite Stone"
+            class="stone-image"
+            onerror="this.src='https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?auto=format&fit=crop&w=600&q=80'"
+          >
+          <div class="stone-text-overlay">
+            <h2 class="main-title-gallery">GRANITE</h2>
+          </div>
+        </div>
+      </div>
+
+      <div class="horizontal-line"></div>
+
+      <div class="tools-wrapper">
+        <div class="tools-hint">SELECT AN EDGE PROFILE TO INSPECT SPECS</div>
+        <div class="tools-section" id="toolsSection3" data-spec-target="specPanel3">
+          <div class="tool-item selected" data-name="Half Bullnose" data-code="PRF-01 // HEAVY-DUTY ARC" data-desc="Diamond-ground top radius built for high-traffic granite stairs and public complexes." data-finish="DIAMOND GLOSS">
+            <div class="tool-svg-wrapper">
+              <svg class="tool-svg" viewBox="0 0 60 45">
+                <path class="stone-body" d="M 10 38 L 50 38 L 50 18 C 50 12, 44 10, 38 10 L 10 10 Z" />
+              </svg>
+            </div>
+            <span class="tool-label">Half Bullnose</span>
+          </div>
+          <div class="tool-item" data-name="Bullnose" data-code="PRF-02 // FULL 180° RADIUS" data-desc="Ultra-durable full bullnose machined with high-torque diamond heads on dense granite." data-finish="MIRROR GRADE-A">
+            <div class="tool-svg-wrapper">
+              <svg class="tool-svg" viewBox="0 0 60 45">
+                <path class="stone-body" d="M 10 38 L 40 38 C 48 38, 52 32, 52 24 C 52 16, 48 10, 40 10 L 10 10 Z" />
+              </svg>
+            </div>
+            <span class="tool-label">Bullnose</span>
+          </div>
+          <div class="tool-item" data-name="Beveled" data-code="PRF-03 // 45° CHAMFER CUT" data-desc="Chip-free 45-degree precision bevel for industrial countertops and heavy granite steps." data-finish="ZERO-CHIP CUT">
+            <div class="tool-svg-wrapper">
+              <svg class="tool-svg" viewBox="0 0 60 45">
+                <path class="stone-body" d="M 10 38 L 50 38 L 50 18 L 40 10 L 10 10 Z" />
+              </svg>
+            </div>
+            <span class="tool-label">Beveled</span>
+          </div>
+          <div class="tool-item" data-name="Step Edge" data-code="PRF-04 // REBATE STEP" data-desc="Deep structural step profile with anti-slip groove options for heavy granite stairs." data-finish="ANTI-SLIP READY">
+            <div class="tool-svg-wrapper">
+              <svg class="tool-svg" viewBox="0 0 60 45">
+                <path class="stone-body" d="M 10 38 L 50 38 L 50 18 L 36 18 L 36 10 L 10 10 Z" />
+              </svg>
+            </div>
+            <span class="tool-label">Step Edge</span>
+          </div>
+          <div class="tool-item" data-name="Eased Edge" data-code="PRF-05 // MICRO CHAMFER" data-desc="Clean modern edge profile eliminating sharp stress points on dense granite slabs." data-finish="HIGH LUSTER">
+            <div class="tool-svg-wrapper">
+              <svg class="tool-svg" viewBox="0 0 60 45">
+                <path class="stone-body" d="M 10 38 L 50 38 L 50 14 L 46 10 L 10 10 Z" />
+              </svg>
+            </div>
+            <span class="tool-label">Eased Edge</span>
+          </div>
+          <div class="tool-item" data-name="Pencil Round" data-code="PRF-06 // SLIM R5 PROFILE" data-desc="Sleek pencil-round edge engineered for granite thresholds, risers, and precision trims." data-finish="CNC POLISHED">
+            <div class="tool-svg-wrapper">
+              <svg class="tool-svg" viewBox="0 0 60 45">
+                <path class="stone-body" d="M 10 38 L 44 38 C 49 38, 51 35, 51 31 C 51 27, 49 24, 44 24 L 10 24 Z" />
+              </svg>
+            </div>
+            <span class="tool-label">Pencil Round</span>
+          </div>
+        </div>
+
+        <div class="profile-spec-panel" id="specPanel3">
+          <div class="spec-main">
+            <span class="spec-tag">PRF-01 // HEAVY-DUTY ARC</span>
+            <div class="spec-title">Half Bullnose — Granite</div>
+            <div class="spec-desc">Diamond-ground top radius built for high-traffic granite stairs and public complexes.</div>
+          </div>
+          <span class="spec-badge">DIAMOND GLOSS</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- صفحه چهارم: تماس با ما -->
+    <section class="contact-section" id="contactSection">
+      <div class="contact-card">
+        <div class="contact-code">04 // DIRECT CONNECTION</div>
+        <h3 class="contact-header-title">GET IN TOUCH</h3>
+        <p class="contact-subtitle">Farzaneh Tejarat Co.</p>
+
+        <div class="social-row">
+          <!-- Phone -->
+          <a href="tel:+989128334048" class="social-link">
+            <div class="social-icon">
+              <svg viewBox="0 0 24 24"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+            </div>
+            <span class="social-text">+98 912 833 4048</span>
+          </a>
+
+          <!-- WhatsApp -->
+          <a href="https://wa.me/989128334048" target="_blank" rel="noopener" class="social-link">
+            <div class="social-icon">
+              <svg viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+            </div>
+            <span class="social-text">WhatsApp</span>
+          </a>
+
+          <!-- Instagram -->
+          <a href="https://instagram.com/farzanehtejarat" target="_blank" rel="noopener" class="social-link">
+            <div class="social-icon">
+              <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+            </div>
+            <span class="social-text">Instagram</span>
+          </a>
+
+          <!-- LinkedIn -->
+          <a href="https://linkedin.com" target="_blank" rel="noopener" class="social-link">
+            <div class="social-icon">
+              <svg viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+            </div>
+            <span class="social-text">LinkedIn</span>
+          </a>
+        </div>
+
+        <div class="address-wrapper">
+          <svg viewBox="0 0 24 24"><path d="M12 0c-4.198 0-8 3.403-8 7.602 0 4.198 3.469 9.21 8 16.398 4.531-7.188 8-12.2 8-16.398 0-4.199-3.801-7.602-8-7.602zm0 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z"/></svg>
+          <span>Mahmoudabad St, Between 42nd & 43rd Alley, Isfahan, Iran - Farzaneh Tejarat Co.</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // 1. تعویض سینمایی دارک مود و وایت مود با موج دایره‌ای از محل کلیک (View Transitions API + Fallback)
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const themeWaveCurtain = document.getElementById('themeWaveCurtain');
+    const htmlElement = document.documentElement;
+
+    const savedTheme = localStorage.getItem('farzanehTheme');
+    if (savedTheme === 'light' || savedTheme === 'dark') {
+      htmlElement.setAttribute('data-theme', savedTheme);
+    }
+
+    themeToggleBtn.addEventListener('click', (e) => {
+      const currentTheme = htmlElement.getAttribute('data-theme');
+      const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+      const rect = themeToggleBtn.getBoundingClientRect();
+      const x = e.clientX || rect.left + rect.width / 2;
+      const y = e.clientY || rect.top + rect.height / 2;
+
+      const applyTheme = () => {
+        htmlElement.setAttribute('data-theme', nextTheme);
+        localStorage.setItem('farzanehTheme', nextTheme);
+      };
+
+      if (document.startViewTransition) {
+        const endRadius = Math.hypot(
+          Math.max(x, window.innerWidth - x),
+          Math.max(y, window.innerHeight - y)
+        );
+
+        const transition = document.startViewTransition(() => {
+          applyTheme();
+        });
+
+        transition.ready.then(() => {
+          document.documentElement.animate(
+            {
+              clipPath: [
+                `circle(0px at ${x}px ${y}px)`,
+                `circle(${endRadius}px at ${x}px ${y}px)`
+              ]
+            },
+            {
+              duration: 650,
+              easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+              pseudoElement: '::view-transition-new(root)'
+            }
+          );
+        });
+      } else {
+        themeWaveCurtain.style.setProperty('--wave-x', `${x}px`);
+        themeWaveCurtain.style.setProperty('--wave-y', `${y}px`);
+        applyTheme();
+        themeWaveCurtain.classList.remove('active');
+        void themeWaveCurtain.offsetWidth;
+        themeWaveCurtain.classList.add('active');
+        setTimeout(() => themeWaveCurtain.classList.remove('active'), 800);
+      }
+    });
+
+    // 2. نوار پیشرفت اسکرول و تشخیص بخش فعال در هدر
+    const scrollProgressBar = document.getElementById('scrollProgressBar');
+    const navLinks = document.querySelectorAll('.tech-nav-link');
+    const trackedSections = ['heroSection', 'catalogSection1', 'catalogSection2', 'catalogSection3', 'contactSection']
+      .map(id => document.getElementById(id));
+
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      scrollProgressBar.style.width = `${progress}%`;
+
+      let currentSectionId = 'heroSection';
+      trackedSections.forEach(sec => {
+        if (sec && scrollTop >= sec.offsetTop - window.innerHeight * 0.4) {
+          currentSectionId = sec.id;
+        }
+      });
+
+      navLinks.forEach(link => {
+        link.classList.toggle('active', link.getAttribute('data-target') === currentSectionId);
+      });
+    }, { passive: true });
+
+    // 3. انیمیشن تایپ‌واکتر تیتر صفحه اول
+    const textToType = "AUTOMATIC\nSTAIR PROFILING &\nPOLISHING MACHINE";
+    const typewriterElement = document.getElementById('typewriterTitle');
+    const heroSection = document.getElementById('heroSection');
+    let charIndex = 0;
+
+    function typeWriter() {
+      if (charIndex < textToType.length) {
+        typewriterElement.textContent += textToType.charAt(charIndex);
+        charIndex++;
+        setTimeout(typeWriter, 55);
+      } else {
+        typewriterElement.style.borderRight = 'none';
+        heroSection.classList.add('loaded');
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(typeWriter, 250);
+    });
+
+    // 4. مدیریت انیمیشن کاتالوگ، افکت 3D سنگ‌ها و پنل تعاملی مشخصات پروفیل برش
+    function initCatalogSection(sectionId, toolsId, cardId, stoneLabel) {
+      const section = document.getElementById(sectionId);
+      const tools = document.getElementById(toolsId);
+      const card = document.getElementById(cardId);
+      const specPanelId = tools.getAttribute('data-spec-target');
+      const specPanel = document.getElementById(specPanelId);
+
+      const sectionObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in-view');
+            sectionObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15 });
+      sectionObserver.observe(section);
+
+      const toolsObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('tools-visible');
+            toolsObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.45 });
+      toolsObserver.observe(tools);
+
+      // تعامل کلیک/انتخاب روی هر پروفیل برش لبه
+      const toolItems = tools.querySelectorAll('.tool-item');
+      toolItems.forEach(item => {
+        item.addEventListener('click', () => {
+          toolItems.forEach(el => el.classList.remove('selected'));
+          item.classList.add('selected');
+
+          if (specPanel) {
+            specPanel.querySelector('.spec-tag').textContent = item.getAttribute('data-code');
+            specPanel.querySelector('.spec-title').textContent = `${item.getAttribute('data-name')} — ${stoneLabel}`;
+            specPanel.querySelector('.spec-desc').textContent = item.getAttribute('data-desc');
+            specPanel.querySelector('.spec-badge').textContent = item.getAttribute('data-finish');
+          }
+        });
+      });
+
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = ((y - centerY) / centerY) * -15;
+        const rotateY = ((x - centerX) / centerX) * 15;
+
+        card.style.animation = 'none';
+        card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+      });
+
+      card.addEventListener('mouseleave', () => {
+        card.style.transition = 'transform 0.8s cubic-bezier(0.16, 1, 0.3, 1)';
+        card.style.transform = 'rotateX(0deg) rotateY(0deg) scale(1)';
+        setTimeout(() => {
+          card.style.animation = 'floatStone 6s ease-in-out infinite alternate';
+          card.style.transition = 'transform 0.3s ease-out';
+        }, 800);
+      });
+
+      card.addEventListener('mouseenter', () => {
+        card.style.transition = 'transform 0.1s ease-out';
+      });
+    }
+
+    initCatalogSection('catalogSection1', 'toolsSection1', 'stoneCard1', 'Marble');
+    initCatalogSection('catalogSection2', 'toolsSection2', 'stoneCard2', 'Travertine');
+    initCatalogSection('catalogSection3', 'toolsSection3', 'stoneCard3', 'Granite');
+
+    // 5. ناظر صفحه چهارم (تماس با ما)
+    const contactSection = document.getElementById('contactSection');
+    const contactObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view');
+          contactObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.2 });
+    contactObserver.observe(contactSection);
+  </script>
+
+</body>
+</html>
